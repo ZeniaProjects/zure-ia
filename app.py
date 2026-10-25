@@ -4,7 +4,8 @@ from huggingface_hub import InferenceClient
 
 app = Flask(__name__)
 MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
-client = InferenceClient(api_key=os.environ.get("HF_TOKEN"))
+HF_TOKEN = os.environ.get("HF_TOKEN")
+client = InferenceClient(model=MODEL_ID, token=HF_TOKEN)
 
 SYSTEM_PROMPT = """
 Tu és a Zure IA, criada pela PLEE UNIVERSE
@@ -182,24 +183,32 @@ def api_chat():
     messages.append({"role": "user", "content": user_message})
 
     try:
-        resposta_completa = ""
-        for chunk in client.chat_completion(
+        response = client.chat_completion(
             messages=messages,
             model=MODEL_ID,
             max_tokens=250,
-            stream=True,
             temperature=0.7,
             top_p=0.9,
-        ):
-            token = chunk.choices[0].delta.content
-            if token:
-                resposta_completa += token
+        )
 
-        return jsonify({"reply": resposta_completa or "Não consegui gerar uma resposta. Tenta novamente."})
+        if hasattr(response, "choices"):
+            choice = response.choices[0]
+            message = getattr(choice, "message", None)
+            if message is not None:
+                content = getattr(message, "content", "")
+                if isinstance(content, list):
+                    content = "".join(part.get("text", "") for part in content if isinstance(part, dict))
+                reply = content or "Não consegui gerar uma resposta. Tenta novamente."
+            else:
+                reply = getattr(choice, "text", "") or "Não consegui gerar uma resposta. Tenta novamente."
+        else:
+            reply = "Não consegui gerar uma resposta. Tenta novamente."
+
+        return jsonify({"reply": reply.strip() or "Não consegui gerar uma resposta. Tenta novamente."})
 
     except Exception as erro:
         print(f"Erro na API: {erro}")
-        return jsonify({"reply": "A Zure IA está temporariamente indisponível. Tenta novamente em alguns instantes."})
+        return jsonify({"reply": "A Zure IA está temporariamente indisponível. Tenta novamente em alguns instantes. (Dica: adicione a variável HF_TOKEN no Render.)"})
 
 
 if __name__ == "__main__":
