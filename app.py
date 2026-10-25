@@ -88,11 +88,12 @@ with gr.Blocks(
 
     gr.ChatInterface(
         fn=responder,
-        chatbot=gr.Chatbot(height=480, type="messages"),
+        chatbot=gr.Chatbot(height=480),
         textbox=gr.Textbox(
             placeholder="Escreve uma mensagem para a Zure IA...",
             lines=2
         ),
+        type="messages",
         examples=[
             "Olá, quem és tu?",
             "Quem criou a Zure IA?",
