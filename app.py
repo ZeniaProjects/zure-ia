@@ -3,9 +3,8 @@ from flask import Flask, request, jsonify, render_template_string
 from huggingface_hub import InferenceClient
 
 app = Flask(__name__)
-MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
-HF_TOKEN = os.environ.get("HF_TOKEN")
-client = InferenceClient(model=MODEL_ID, token=HF_TOKEN)
+MODEL_ID = "microsoft/Phi-3-mini-4k-instruct"
+client = InferenceClient(token=os.environ.get("HF_TOKEN"))
 
 SYSTEM_PROMPT = """
 Tu és a Zure IA, criada pela PLEE UNIVERSE
@@ -127,8 +126,8 @@ HTML_PAGE = """
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, history: history })
       })
-      .then(r => r.json())
-      .then(data => {
+      .then(async r => {
+        const data = await r.json();
         const reply = data.reply || 'Não consegui gerar uma resposta.';
         addMessage('bot', reply);
         history.push({ role: 'assistant', content: reply });
@@ -186,7 +185,7 @@ def api_chat():
         response = client.chat_completion(
             messages=messages,
             model=MODEL_ID,
-            max_tokens=250,
+            max_tokens=220,
             temperature=0.7,
             top_p=0.9,
         )
@@ -208,7 +207,7 @@ def api_chat():
 
     except Exception as erro:
         print(f"Erro na API: {erro}")
-        return jsonify({"reply": "A Zure IA está temporariamente indisponível. Tenta novamente em alguns instantes. (Dica: adicione a variável HF_TOKEN no Render.)"})
+        return jsonify({"reply": "A Zure IA está temporariamente indisponível. Tenta novamente em alguns instantes."})
 
 
 if __name__ == "__main__":
