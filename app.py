@@ -57,7 +57,7 @@ def responder(mensagem, historico):
 
     except Exception as erro:
         print(f"Erro na API: {erro}")
-        return "A Zure IA está temporariamente indisponível. Tenta novamente em alguns instantes."
+        return "A Zure IA está temporaneamente indisponível. Tenta novamente em alguns instantes."
 
 
 CSS = """
@@ -75,7 +75,6 @@ with gr.Blocks(
     ),
     css=CSS
 ) as app:
-
     gr.Markdown("""
     # 🤖 Zure IA
 
@@ -110,4 +109,4 @@ with gr.Blocks(
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
-    app.launch(server_name="0.0.0.0", server_port=port)
+    app.launch(server_name="0.0.0.0", server_port=port, share=False)
